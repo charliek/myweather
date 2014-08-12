@@ -23,6 +23,14 @@ ratpack {
     handlers {
         handler("", registry.get(IndexHandler))
 
+        handler("ping") {
+            byMethod {
+                get {
+                    render "PONG"
+                }
+            }
+        }
+
         prefix("api") {
             handler("weather/zip/:zip", registry.get(ZipAPIHandler))
         }
