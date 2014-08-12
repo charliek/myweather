@@ -1,0 +1,37 @@
+{
+  "builders": [{
+      "type": "amazon-ebs",
+      "access_key": "{{user `aws_access_key`}}",
+      "secret_key": "{{user `aws_secret_key`}}",
+      "region": "us-west-2",
+      "source_ami": "ami-8386feb3",
+      "ssh_timeout": "5m",
+      "instance_type": "m3.medium",
+      "ssh_username": "ubuntu",
+      "ami_name": "gum-demo-ebs-{{timestamp}}"
+    }],
+
+  "provisioners": [
+    {
+      "type": "shell",
+      "inline": ["sleep 30"]
+    },
+    {
+      "scripts": [
+        "scripts/install_base_packages.sh",
+        "scripts/install_ec2_ami_tools.sh"
+      ],
+      "type": "shell"
+    }
+  ],
+
+  "variables": {
+    "aws_access_key": "",
+    "aws_secret_key": "",
+    "aws_x509_cert_path": "",
+    "aws_x509_key_path": "",
+    "aws_account_id": "",
+    "aws_s3_bucket": ""
+  }
+
+}

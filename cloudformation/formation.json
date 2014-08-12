@@ -1,0 +1,123 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+
+  "Resources": {
+
+    "serviceDns": {
+      "Type": "AWS::Route53::RecordSet",
+      "Properties": {
+        "HostedZoneName": "littledemo.com.",
+        "Comment": "DNS name for database master",
+        "Name": {
+          "Fn::Join": ["", [{
+            "Ref": "AWS::StackName"
+          }, "-weather.littledemo.com."
+          ]]
+        },
+        "Type": "CNAME",
+        "TTL": "60",
+        "ResourceRecords": [{
+          "Fn::GetAtt": ["gumELB", "DNSName"]
+        }]
+      }
+    },
+
+    "gumELB": {
+      "Type": "AWS::ElasticLoadBalancing::LoadBalancer",
+      "Properties": {
+        "AvailabilityZones": [
+          "us-west-2a",
+          "us-west-2b"
+        ],
+        "HealthCheck": {
+          "HealthyThreshold": "7",
+          "Interval": "10",
+          "Target": "HTTP:5050/ping",
+          "Timeout": "3",
+          "UnhealthyThreshold": "3"
+        },
+        "Listeners": [{
+          "InstancePort": "80",
+          "LoadBalancerPort": "5050",
+          "Protocol": "HTTP",
+          "InstanceProtocol": "HTTP"
+        }]
+      }
+    },
+
+    "gumASG": {
+      "Type": "AWS::AutoScaling::AutoScalingGroup",
+      "Properties": {
+        "AvailabilityZones": [
+          "us-west-2b",
+          "us-west-2a"
+        ],
+        "Tags": [{
+          "Key": "RundeckTags",
+          "Value": "myweather,gum,cloudformation",
+          "PropagateAtLaunch": "true"
+        }],
+        "Cooldown": "10",
+        "DesiredCapacity": "1",
+        "MinSize": "1",
+        "MaxSize": "1",
+        "HealthCheckGracePeriod": "600",
+        "HealthCheckType": "ELB",
+        "LaunchConfigurationName": {
+          "Ref": "gumLaunchConfig"
+        },
+        "LoadBalancerNames": [{
+          "Ref": "gumELB"
+        }]
+      }
+    },
+
+    "gumLaunchConfig": {
+      "Type": "AWS::AutoScaling::LaunchConfiguration",
+      "Properties": {
+        "ImageId": "ami-af3d789f",
+        "InstanceType": "m3.medium",
+        "EbsOptimized": "false",
+        "KeyName": "rundeck",
+        "InstanceMonitoring": "false",
+        "SecurityGroups": [{
+          "Ref": "gumSG"
+        }],
+        "UserData": {
+          "Fn::Base64": {
+            "Fn::Join": ["", [
+              "#!/bin/bash -x\n",
+              "sudo docker.io run -d --name myweather -p 5050:5050 charliek/myweather:0.0.3\n"
+            ]]
+          }
+        }
+      }
+    },
+
+    "gumSG": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Gum Test Security Group",
+        "SecurityGroupIngress": [{
+            "IpProtocol": "tcp",
+            "FromPort": "22",
+            "ToPort": "22",
+            "CidrIp": "0.0.0.0/0"
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "80",
+            "ToPort": "80",
+            "CidrIp": "0.0.0.0/0"
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "5050",
+            "ToPort": "5050",
+            "CidrIp": "0.0.0.0/0"
+          }
+        ]
+      }
+    }
+  }
+}

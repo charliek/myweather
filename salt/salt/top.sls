@@ -1,0 +1,5 @@
+base:
+  '*':
+    - base
+    - users
+    - myweather
