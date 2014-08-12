@@ -3,22 +3,34 @@
 <head>
     <style type="text/css">
         body {
-            background-color: green;
-            color: white;
+            background-color: white;
+            color: black;
         }
     </style>
-  <meta charset="utf-8">
-  <title>Hello World!</title>
+    <meta charset="utf-8">
+    <title>Hello World!</title>
 </head>
 <body>
-  <header>
-    <h1>Hello World : ${model}</h1>
-  </header>
+<header>
+    <h1>Weather Report</h1>
+</header>
 
-  <section>
-    <p>This is the main page for the best Ratpack app.</p>
-  </section>
+<section>
+    <form method="get" action="/">
+        <label for="zip">ZipCode</label><input type="text" name="zip" id="zip" /><input type="submit" value="Submit"/>
+    </form>
+</section>
 
-  <footer class="site-footer"></footer>
+<h2>Current conditions in $model.weather.displayLocation.full</h2>
+<table>
+    <tr>
+        <td><img src="$model.weather.iconUrl" alt="$model.weather.icon"/></td>
+        <td><h3>$model.weather.tempF</h3></td>
+    </tr>
+</table>
+
+
+
+<footer class="site-footer"></footer>
 </body>
 </html>

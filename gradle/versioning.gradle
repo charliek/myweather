@@ -1,0 +1,12 @@
+allprojects {  project ->
+    ext.release = project.hasProperty('release') && release
+    ext.isSnapshot = false
+
+    version = currentVersion
+
+    if (! release) {
+        // make items snapshot by default
+        version += '-SNAPSHOT'
+        isSnapshot = true
+    }
+}

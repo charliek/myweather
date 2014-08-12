@@ -1,15 +1,21 @@
 buildscript {
     repositories {
         jcenter()
+        maven { url "http://dl.bintray.com/gesellix/gradle-plugins" }
     }
     dependencies {
         classpath "io.ratpack:ratpack-gradle:0.9.7"
         classpath 'com.github.jengelman.gradle.plugins:shadow:1.0.2'
+        classpath 'de.gesellix:gradle-debian-plugin:14'
+        classpath 'se.transmode.gradle:gradle-docker:1.2'
     }
 }
 
+apply from: file('gradle/versioning.gradle')
 apply plugin: "io.ratpack.ratpack-groovy"
 apply plugin: 'com.github.johnrengelman.shadow'
+apply plugin: 'pkg-debian'
+apply plugin: 'docker'
 
 repositories {
     jcenter()
@@ -32,6 +38,45 @@ dependencies {
     compile ratpack.dependency("hystrix")
 }
 
+// Stage is the task called by heroku
 task stage {
     dependsOn installShadowApp
+}
+
+// Setup the debian package build
+debian {
+    packagename = project.name
+    controlDirectory = "${projectDir}/src/debian/control"
+    changelogFile = "${projectDir}/src/debian/changelog"
+    outputFile = "${buildDir}/${project.name}_${version}_all.deb"
+    data {
+        dir {
+            name = "${projectDir}/src/debian/data"
+        }
+        file {
+            name = project.shadowJar.outputs.files.singleFile
+            target = "usr/share/${project.name}/app.jar"
+        }
+    }
+}
+
+docker {
+    apiUsername dockerUser
+    apiPassword dockerPassword
+    apiEmail dockerEmail
+}
+
+task buildDocker(type: Docker, dependsOn: shadowJar) {
+    applicationName = "${dockerUser}/${project.name}"
+    tagVersion = project.version
+    dockerfile = project.file('Dockerfile')
+    addFile(project.shadowJar.outputs.files.singleFile, "/app.jar")
+    push = project.hasProperty('pushImage') && pushImage && dockerPassword
+}
+
+String getDockerPassword() {
+    if (project.hasProperty('dockerPassword')) {
+        return project.property('dockerPassword')
+    }
+    return System.getenv('DOCKER_PASSWORD')
 }

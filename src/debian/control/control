@@ -1,0 +1,8 @@
+Package: [[name]]
+Version: [[version]]
+Section: base
+Priority: optional
+Architecture: all
+Depends: openjdk-7-jre-headless
+Maintainer: Charlie Knudsen <charlie.knudsen@gmail.com>
+Description: myweather app

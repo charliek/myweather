@@ -1,4 +1,4 @@
-package com.charlieknudsen.myweather.handlers
+package com.charlieknudsen.myweather.handlers.api
 
 import com.charlieknudsen.myweather.services.WUnderground
 import com.charlieknudsen.myweather.transfer.Conditions
@@ -10,13 +10,13 @@ import static ratpack.jackson.Jackson.json
 
 import javax.inject.Inject
 
-class ZipHandler extends GroovyHandler {
+class ZipAPIHandler extends GroovyHandler {
 
     private final ObjectMapper mapper
     private final WUnderground wUnderground
 
     @Inject
-    ZipHandler(ObjectMapper mapper, WUnderground wUnderground) {
+    ZipAPIHandler(ObjectMapper mapper, WUnderground wUnderground) {
         this.wUnderground = wUnderground
         this.mapper = mapper
     }
