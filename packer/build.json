@@ -1,4 +1,4 @@
-{
+  {
   "builders": [{
       "type": "amazon-ebs",
       "access_key": "{{user `aws_access_key`}}",
@@ -9,7 +9,24 @@
       "instance_type": "m3.medium",
       "ssh_username": "ubuntu",
       "ami_name": "gum-demo-ebs-{{timestamp}}"
-    }],
+    },
+    {
+      "type": "amazon-instance",
+      "access_key": "{{user `aws_access_key`}}",
+      "secret_key": "{{user `aws_secret_key`}}",
+      "x509_cert_path": "{{user `aws_x509_cert_path`}}",
+      "x509_key_path": "{{user `aws_x509_key_path`}}",
+      "account_id": "{{user `aws_account_id`}}",
+      "x509_upload_path": "/tmp",
+      "s3_bucket": "{{user `aws_s3_bucket`}}",
+      "region": "us-west-2",
+      "source_ami": "ami-e96025d9",
+      "instance_type": "m3.medium",
+      "ssh_username": "ubuntu",
+      "ami_name": "gum-demo-instance-{{timestamp}}",
+      "bundle_vol_command": "sudo -n EC2_AMITOOL_HOME=/opt/ec2-ami-tools/ec2-ami-tools-1.5.3 /opt/ec2-ami-tools/ec2-ami-tools-1.5.3/bin/ec2-bundle-vol -k {{.KeyPath}} -u {{.AccountId}} -c {{.CertPath}} -r {{.Architecture}} -e {{.PrivatePath}}/* -d {{.Destination}} -p {{.Prefix}} --batch --no-filter",
+      "bundle_upload_command": "sudo -n EC2_AMITOOL_HOME=/opt/ec2-ami-tools/ec2-ami-tools-1.5.3, /opt/ec2-ami-tools/ec2-ami-tools-1.5.3/bin/ec2-upload-bundle -b {{.BucketName}} -m {{.ManifestPath}} -a {{.AccessKey}} -s {{.SecretKey}} -d {{.BundleDirectory}} --batch --url {{.S3Endpoint}} --retry"
+  }],
 
   "provisioners": [
     {
@@ -18,10 +35,23 @@
     },
     {
       "scripts": [
-        "scripts/install_base_packages.sh",
-        "scripts/install_ec2_ami_tools.sh"
+        "scripts/install_base_packages.sh"
       ],
       "type": "shell"
+    },
+    {
+      "scripts": [
+        "scripts/setup_docker_base.sh"
+      ],
+      "type": "shell",
+      "only": ["amazon-ebs"]
+    },
+    {
+      "scripts": [
+        "scripts/install_ec2_ami_tools.sh"
+      ],
+      "type": "shell",
+      "only": ["amazon-instance"]
     }
   ],
 
